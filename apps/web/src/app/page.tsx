@@ -1,168 +1,267 @@
-"use client";
-import { useMiniApp } from "@/contexts/miniapp-context";
-import { sdk } from "@farcaster/frame-sdk";
-import { useState, useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+'use client';
 
-export default function Home() {
-  const { context, isMiniAppReady } = useMiniApp();
-  const [isAddingMiniApp, setIsAddingMiniApp] = useState(false);
-  const [addMiniAppMessage, setAddMiniAppMessage] = useState<string | null>(null);
-  
-  // Wallet connection hooks
-  const { address, isConnected, isConnecting } = useAccount();
-  const { connect, connectors } = useConnect();
-  
-  // Auto-connect wallet when miniapp is ready
-  useEffect(() => {
-    if (isMiniAppReady && !isConnected && !isConnecting && connectors.length > 0) {
-      const farcasterConnector = connectors.find(c => c.id === 'farcaster');
-      if (farcasterConnector) {
-        connect({ connector: farcasterConnector });
-      }
+import { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
+import geohash from 'ngeohash';
+
+type Coords = {
+  lat: number;
+  lon: number;
+};
+
+type GeoState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; coords: Coords }
+  | { status: 'error'; message: string };
+
+function useGeolocation() {
+  const [state, setState] = useState<GeoState>({ status: 'idle' });
+
+  const requestLocation = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setState({
+        status: 'error',
+        message: 'Geolocation is not supported in this environment.',
+      });
+      return;
     }
-  }, [isMiniAppReady, isConnected, isConnecting, connectors, connect]);
-  
-  // Extract user data from context
-  const user = context?.user;
-  // Use connected wallet address if available, otherwise fall back to user custody/verification
-  const walletAddress = address || user?.custody || user?.verifications?.[0] || "0x1e4B...605B";
-  const displayName = user?.displayName || user?.username || "User";
-  const username = user?.username || "@user";
-  const pfpUrl = user?.pfpUrl;
-  
-  // Format wallet address to show first 6 and last 4 characters
-  const formatAddress = (address: string) => {
-    if (!address || address.length < 10) return address;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-  
-  if (!isMiniAppReady) {
-    return (
-      <main className="flex-1">
-        <section className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="w-full max-w-md mx-auto p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </section>
-      </main>
+
+    setState({ status: 'loading' });
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setState({
+          status: 'success',
+          coords: {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          },
+        });
+      },
+      (err) => {
+        setState({
+          status: 'error',
+          message: err.message || 'Unable to get your location.',
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10_000,
+        maximumAge: 5_000,
+      },
     );
+  };
+
+  useEffect(() => {
+    // Ask for location once on mount
+    requestLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return { state, requestLocation };
+}
+
+// This will later call your Celo / Sapphire contract.
+// For now it just logs, so you can wire the UI without breaking anything.
+async function sendLocationToChain({
+  coords,
+  geohash5,
+}: {
+  coords: Coords;
+  geohash5: string;
+}) {
+  console.log('⚡ [SisterSafe] Would send to chain:', {
+    lat: coords.lat,
+    lon: coords.lon,
+    geohash5,
+  });
+  // TODO (later):
+  // - call a Celo contract function via wagmi/viem
+  // - or call an Oasis Sapphire contract with encrypted coords
+}
+
+export default function HomePage() {
+  const { address, isConnected } = useAccount();
+  const { state, requestLocation } = useGeolocation();
+
+  let geohash5: string | null = null;
+  if (state.status === 'success') {
+    geohash5 = geohash.encode(state.coords.lat, state.coords.lon, 5); // 5-char = coarse
   }
-  
+
   return (
-    <main className="flex-1">
-      <section className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="w-full max-w-md mx-auto p-8 text-center">
-          {/* Welcome Header */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome
-          </h1>
-          
-          {/* Status Message */}
-          <p className="text-lg text-gray-600 mb-6">
-            You are signed in!
-          </p>
-          
-          {/* User Wallet Address */}
-          <div className="mb-8">
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-600 font-medium">Wallet Status</span>
-                <div className={`flex items-center gap-1 text-xs ${
-                  isConnected ? 'text-green-600' : isConnecting ? 'text-yellow-600' : 'text-gray-500'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full ${
-                    isConnected ? 'bg-green-500' : isConnecting ? 'bg-yellow-500' : 'bg-gray-400'
-                  }`}></div>
-                  {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Disconnected'}
-                </div>
-              </div>
-              <p className="text-sm text-gray-700 font-mono">
-                {formatAddress(walletAddress)}
-              </p>
-            </div>
-          </div>
-          
-          {/* User Profile Section */}
-          <div className="mb-8">
-            {/* Profile Avatar */}
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center overflow-hidden">
-              {pfpUrl ? (
-                <img 
-                  src={pfpUrl} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                </div>
-              )}
-            </div>
-            
-            {/* Profile Info */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-1">
-                {displayName}
-              </h2>
-              <p className="text-gray-500">
-                {username.startsWith('@') ? username : `@${username}`}
-              </p>
-            </div>
-          </div>
-          
-          {/* Add Miniapp Button */}
-          <div className="mb-6">
-            <button
-              onClick={async () => {
-                if (isAddingMiniApp) return;
-                
-                setIsAddingMiniApp(true);
-                setAddMiniAppMessage(null);
-                
-                try {
-                  const result = await sdk.actions.addMiniApp();
-                  if (result.added) {
-                    setAddMiniAppMessage("✅ Miniapp added successfully!");
-                  } else {
-                    setAddMiniAppMessage("ℹ️ Miniapp was not added (user declined or already exists)");
-                  }
-                } catch (error: any) {
-                  console.error('Add miniapp error:', error);
-                  if (error?.message?.includes('domain')) {
-                    setAddMiniAppMessage("⚠️ This miniapp can only be added from its official domain");
-                  } else {
-                    setAddMiniAppMessage("❌ Failed to add miniapp. Please try again.");
-                  }
-                } finally {
-                  setIsAddingMiniApp(false);
-                }
+    <main
+      style={{
+        minHeight: '100vh',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        background: '#050110',
+        color: '#f7f7f7',
+      }}
+    >
+      <header style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <h1 style={{ fontSize: '1.6rem', margin: 0 }}>SisterSafe (MiniApp)</h1>
+        <p style={{ opacity: 0.8, margin: 0 }}>
+          Verified women&apos;s safety crews with privacy-friendly location on Celo.
+        </p>
+      </header>
+
+      {/* Wallet section */}
+      <section
+        style={{
+          padding: '12px 14px',
+          borderRadius: 12,
+          background: '#141221',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <h2 style={{ fontSize: '1.1rem', marginTop: 0, marginBottom: 8 }}>
+          Wallet
+        </h2>
+        {isConnected ? (
+          <>
+            <p style={{ fontSize: '0.9rem', margin: 0, opacity: 0.8 }}>
+              Connected address:
+            </p>
+            <p
+              style={{
+                fontSize: '0.9rem',
+                wordBreak: 'break-all',
+                marginTop: 4,
+                marginBottom: 0,
               }}
-              disabled={isAddingMiniApp}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
             >
-              {isAddingMiniApp ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <span>📱</span>
-                  Add Miniapp
-                </>
-              )}
-            </button>
-            
-            {/* Add Miniapp Status Message */}
-            {addMiniAppMessage && (
-              <div className="mt-3 p-3 bg-white/30 backdrop-blur-sm rounded-lg">
-                <p className="text-sm text-gray-700">{addMiniAppMessage}</p>
-              </div>
+              {address}
+            </p>
+          </>
+        ) : (
+          <>
+            <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+              Not connected yet.
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', opacity: 0.7 }}>
+              In Farcaster Wallet as a MiniApp, your wallet will auto-connect via
+              the Celo Farcaster connector.
+            </p>
+          </>
+        )}
+      </section>
+
+      {/* Geolocation section */}
+      <section
+        style={{
+          padding: '12px 14px',
+          borderRadius: 12,
+          background: '#141221',
+          border: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        <h2 style={{ fontSize: '1.1rem', marginTop: 0, marginBottom: 4 }}>
+          Geolocation
+        </h2>
+
+        {state.status === 'idle' && (
+          <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+            Tap “Refresh location” to request your position.
+          </p>
+        )}
+
+        {state.status === 'loading' && (
+          <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+            Getting your location…
+          </p>
+        )}
+
+        {state.status === 'error' && (
+          <p
+            style={{
+              fontSize: '0.9rem',
+              color: '#ff8080',
+              margin: 0,
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            Error: {state.message}
+          </p>
+        )}
+
+        {state.status === 'success' && (
+          <div style={{ fontSize: '0.9rem' }}>
+            <p style={{ margin: 0, opacity: 0.8 }}>Current coordinates:</p>
+            <p style={{ margin: '4px 0 0' }}>
+              <strong>Lat:</strong> {state.coords.lat.toFixed(5)}
+              <br />
+              <strong>Lon:</strong> {state.coords.lon.toFixed(5)}
+            </p>
+            {geohash5 && (
+              <p style={{ margin: '6px 0 0', opacity: 0.9 }}>
+                <strong>Geohash (5-char, coarse):</strong> {geohash5}
+              </p>
             )}
           </div>
-        </div>
+        )}
+
+        <button
+          type="button"
+          onClick={requestLocation}
+          style={{
+            marginTop: 8,
+            padding: '10px 14px',
+            borderRadius: 999,
+            border: 'none',
+            background:
+              'linear-gradient(135deg, #FCFF52 0%, #F29E5F 50%, #8AC0F9 100%)',
+            color: '#050110',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+          }}
+        >
+          Refresh location
+        </button>
+
+        <button
+          type="button"
+          disabled={state.status !== 'success' || !geohash5}
+          onClick={() => {
+            if (state.status === 'success' && geohash5) {
+              void sendLocationToChain({
+                coords: state.coords,
+                geohash5,
+              });
+            }
+          }}
+          style={{
+            marginTop: 4,
+            padding: '9px 14px',
+            borderRadius: 999,
+            border: '1px solid rgba(255,255,255,0.15)',
+            background:
+              state.status === 'success' && geohash5
+                ? '#ffffff10'
+                : '#ffffff05',
+            color: '#f7f7f7',
+            fontWeight: 500,
+            fontSize: '0.85rem',
+            cursor:
+              state.status === 'success' && geohash5 ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Send privacy-friendly location (stub)
+        </button>
+
+        <p style={{ margin: 0, marginTop: 4, fontSize: '0.75rem', opacity: 0.6 }}>
+          We convert your GPS into a coarse geohash (5 characters) before sending
+          anything on-chain. For now this button only logs to the console – next
+          we&apos;ll wire it to Celo / Oasis contracts.
+        </p>
       </section>
     </main>
   );
