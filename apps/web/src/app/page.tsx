@@ -11,6 +11,14 @@ import {
 } from '../contracts/sisterSafeConfig';
 import { wagmiConfig, celoSepolia } from '../lib/wagmi';
 
+// Type assertion for MetaMask
+const getEthereum = () => {
+  if (typeof window !== 'undefined' && window.ethereum) {
+    return window.ethereum as any;
+  }
+  return null;
+};
+
 type Coords = {
   lat: number;
   lon: number;
@@ -111,11 +119,148 @@ export default function HomePage() {
     geohash5 = geohash.encode(state.coords.lat, state.coords.lon, 5);
   }
 
+  // Function to add Celo network to MetaMask if not already added
+  const addCeloNetwork = async () => {
+    const ethereum = getEthereum();
+    if (!ethereum) {
+      throw new Error('MetaMask is not installed');
+    }
+
+    try {
+      await ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: `0x${celoSepolia.id.toString(16)}`,
+          chainName: celoSepolia.name,
+          nativeCurrency: {
+            name: celoSepolia.nativeCurrency.name,
+            symbol: celoSepolia.nativeCurrency.symbol,
+            decimals: celoSepolia.nativeCurrency.decimals,
+          },
+          rpcUrls: celoSepolia.rpcUrls.default.http,
+          blockExplorerUrls: [celoSepolia.blockExplorers.default.url],
+        }],
+      });
+    } catch (addError: any) {
+      // If the network already exists (various error codes), that's fine - just skip
+      const errorCode = addError?.code || addError?.data?.code;
+      const errorMessage = addError?.message || '';
+
+      // Handle various "network already exists" error codes
+      if (
+        errorCode === 4902 ||
+        errorCode === -32603 ||
+        errorMessage.includes('same RPC endpoint') ||
+        errorMessage.includes('existing network')
+      ) {
+        // Network already exists, no need to add - this is fine
+        console.log('Network already exists in MetaMask, skipping add');
+        return;
+      }
+      // For any other error, re-throw it
+      throw addError;
+    }
+  };
+
+  // Function to ensure we're on Celo and wait for switch to complete
+  const ensureCeloNetwork = async (): Promise<boolean> => {
+    const ethereum = getEthereum();
+    if (!ethereum) {
+      alert('MetaMask is not installed');
+      return false;
+    }
+
+    try {
+      // Check current chain
+      const currentChainId = await ethereum.request({ method: 'eth_chainId' });
+      const currentChainIdNumber = parseInt(currentChainId as string, 16);
+
+      if (currentChainIdNumber === celoSepolia.id) {
+        return true; // Already on Celo
+      }
+
+      // Try to switch first (network might already exist)
+      try {
+        await switchChain({ chainId: celoSepolia.id });
+      } catch (switchError: any) {
+        // If switch fails with "network not found", try adding it
+        const switchErrorCode = switchError?.code || switchError?.data?.code;
+        if (switchErrorCode === 4902) {
+          // Network not found, try to add it
+          try {
+            await addCeloNetwork();
+            // Try switching again after adding (or if it already existed)
+            await switchChain({ chainId: celoSepolia.id });
+          } catch (addError: any) {
+            // If add fails because network exists, just try switching again
+            const addErrorCode = addError?.code || addError?.data?.code;
+            const addErrorMessage = addError?.message || '';
+            if (
+              addErrorCode === -32603 ||
+              addErrorMessage.includes('same RPC endpoint') ||
+              addErrorMessage.includes('existing network')
+            ) {
+              // Network exists, just switch
+              await switchChain({ chainId: celoSepolia.id });
+            } else {
+              throw addError;
+            }
+          }
+        } else {
+          throw switchError;
+        }
+      }
+
+      // Wait and verify the switch completed
+      let attempts = 0;
+      const maxAttempts = 10;
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const newChainId = await ethereum.request({ method: 'eth_chainId' });
+        const newChainIdNumber = parseInt(newChainId as string, 16);
+
+        if (newChainIdNumber === celoSepolia.id) {
+          return true; // Successfully switched
+        }
+        attempts++;
+      }
+
+      // If we get here, the switch didn't complete
+      alert('Please approve the network switch in your wallet and try again.');
+      return false;
+    } catch (error: any) {
+      console.error('Error ensuring Celo network:', error);
+      if (error.code === 4001) {
+        alert('Network switch was rejected. Please switch to Celo Sepolia manually.');
+      } else {
+        alert('Failed to switch to Celo Sepolia. Please switch manually in your wallet.');
+      }
+      return false;
+    }
+  };
+
   const handleVerify = async () => {
     try {
       if (!isConnected) {
         alert('Please connect your wallet first.');
         return;
+      }
+
+      // Ensure we're on Celo before proceeding
+      const isOnCelo = await ensureCeloNetwork();
+      if (!isOnCelo) {
+        return; // User needs to switch manually
+      }
+
+      // Double-check chain one more time before sending
+      const ethereum = getEthereum();
+      if (ethereum) {
+        const finalChainId = await ethereum.request({ method: 'eth_chainId' });
+        const finalChainIdNumber = parseInt(finalChainId as string, 16);
+        if (finalChainIdNumber !== celoSepolia.id) {
+          alert('Please switch to Celo Sepolia network before verifying.');
+          return;
+        }
       }
 
       const txHash = await writeContract(wagmiConfig, {
@@ -128,7 +273,11 @@ export default function HomePage() {
       alert('Verification transaction sent.');
     } catch (error: any) {
       console.error('Error verifying user:', error);
-      alert('Verification failed. Check console for details.');
+      if (error?.message?.includes('chain') || error?.message?.includes('network')) {
+        alert('Transaction failed. Please ensure you are on Celo Sepolia network.');
+      } else {
+        alert('Verification failed. Check console for details.');
+      }
     }
   };
 
@@ -179,25 +328,35 @@ export default function HomePage() {
             >
               {address}
             </p>
-            <p style={{ fontSize: '0.85rem', marginTop: 8, marginBottom: 0, opacity: 0.7 }}>
-              Network: {chainId === celoSepolia.id ? 'Celo Sepolia ✓' : `Chain ${chainId} (switching to Celo...)`}
+            <p style={{
+              fontSize: '0.85rem',
+              marginTop: 8,
+              marginBottom: 0,
+              opacity: chainId === celoSepolia.id ? 0.7 : 1,
+              color: chainId === celoSepolia.id ? 'inherit' : '#ff8080'
+            }}>
+              Network: {chainId === celoSepolia.id ? 'Celo Sepolia ✓' : `Chain ${chainId} - Please switch to Celo Sepolia`}
             </p>
 
             <button
               onClick={handleVerify}
+              disabled={chainId !== celoSepolia.id}
               style={{
                 marginTop: 10,
                 padding: '10px 14px',
                 borderRadius: 999,
                 border: 'none',
-                background: 'linear-gradient(135deg, #2FFFB3 0%, #6AA8FF 100%)',
-                color: '#050110',
+                background: chainId === celoSepolia.id
+                  ? 'linear-gradient(135deg, #2FFFB3 0%, #6AA8FF 100%)'
+                  : '#666666',
+                color: chainId === celoSepolia.id ? '#050110' : '#999999',
                 fontWeight: 600,
                 fontSize: '0.9rem',
-                cursor: 'pointer',
+                cursor: chainId === celoSepolia.id ? 'pointer' : 'not-allowed',
+                opacity: chainId === celoSepolia.id ? 1 : 0.5,
               }}
             >
-              Verify Me
+              {chainId === celoSepolia.id ? 'Verify Me' : 'Switch to Celo to Verify'}
             </button>
 
             <button
