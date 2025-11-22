@@ -3,13 +3,12 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 
 import { Navbar } from '@/components/navbar';
-import Providers from "@/components/providers"
+import AppProviders from './providers'; // ✅ Client-side wagmi provider wrapper
 
 const inter = Inter({ subsets: ['latin'] });
 
 const appUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
-// Embed metadata for Farcaster sharing
 const frame = {
   version: "1",
   imageUrl: `${appUrl}/opengraph-image.png`,
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
     images: [`${appUrl}/opengraph-image.png`],
   },
   other: {
-    "fc:frame": JSON.stringify(frame),
+    'fc:frame': JSON.stringify(frame),
   },
 };
 
@@ -46,15 +45,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* Navbar is included on all pages */}
-        <div className="relative flex min-h-screen flex-col">
-          <Providers>
+        {/* ✅ Wagmi + QueryClient wrapped in a Client Component */}
+        <AppProviders>
+          <div className="relative flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1">
               {children}
             </main>
-          </Providers>
-        </div>
+          </div>
+        </AppProviders>
       </body>
     </html>
   );
