@@ -9,7 +9,7 @@ _Feminist & Cypherpunk: Maximum Privacy + Self-Sovereignty_
 
 - **Zero-Knowledge Proofs:** zk-SNARKs, zk-PoL
 - **Blockchain:** Celo L2
-- **Identity:** Self Protocol (ZK-based), Aztec (privacy for transactions)
+- **Identity:** Self Protocol (ZK-based)
 - **Confidential Compute:** Oasis Sapphire
 
 ---
