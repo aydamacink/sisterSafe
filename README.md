@@ -1,69 +1,93 @@
-# Project Name: SisterSafe
+# SisterSafe
 
-[Core Ethos]: Feminist & Cypherpunk (Maximal Privacy + Self-Sovereignty)
-[Technology Stack] 	Zero-Knowledge Proofs (ZK-SNARKs), Celo L2, Self Protocol (ZK Identity), Oasis Sapphire (Confidential Compute)
+**Radical Digital Autonomy for Personal Safety**  
+_Feminist & Cypherpunk: Maximum Privacy + Self-Sovereignty_
 
-[The Problem]
+---
 
-The current landscape of personal safety solutions is fundamentally broken by its reliance on centralized, vulnerable, and invasive infrastructure:
+## 🚩 Core Tech Stack
 
-* Problem StatementReal-World FlawPrivacy vs. Safety Trade-offTraditional safety apps require users to continuously share their precise location with a centralized server, sacrificing privacy for the mere potential of safety. This creates a massive, single point of failure for sensitive location data.
-* Censorship & Trust IssuesCentralized alerts can be blocked, delayed, or manipulated by external actors or platform failures. The user must trust the app company and third-party servers to correctly relay the life-saving signal.
-* Identity/Sybil Attacks When forming a trusted safety network, there is no way to cryptographically verify that the contacts are unique, verified individuals, leading to a risk of fake accounts or Sybil attacks on the trusted circle.
+- **Zero-Knowledge Proofs:** zk-SNARKs, zk-PoL
+- **Blockchain:** Celo L2
+- **Identity:** Self Protocol (ZK-based), Aztec (privacy for transactions)
+- **Confidential Compute:** Oasis Sapphire
 
-[The Solution]
+---
 
-SisterSafe eliminates the trust requirement by verifying the emergency state mathematically before releasing the location confidentially.
+## 💥 Problem Landscape
 
-- BenefitTrustless (VerificationZero-Knowledge) Proof of Location (zk-PoL) The user generates a ZK proof ($\pi$) proving they are "outside their safe zone" or "initiated a panic alert" without revealing their actual, raw GPS coordinates to the network.
-- Confidential (DecryptionOasis SapphireThe) decryption key ($K_S$) for the precise location is stored in an Oasis Confidential Smart Contract (CSM). The CSM only releases the key if the Celo L2 public state confirms the ZK-Proof ($\pi$) was valid. This ensures no one (not even the node runners) can steal the key before the emergency is verified.
-- Privacy-Preserving Identity (Self Protocol + Aztec) Self Protocol verifies the humanity/uniqueness of the trusted contacts via ZK proof. Aztec is used to initiate the alert transaction privately, hiding the Prover's wallet address and the exact time of the alert from the public Celo ledger.
-- Seamless UX (Celo/Account Abstraction) All cryptographic complexity is abstracted. The user simply triggers the alert (e.g., via a power button sequence), and the low-cost Celo network handles the gasless transaction execution.
+Traditional safety apps force users to share raw location with centralized servers—sacrificing privacy for "protection".  
+This exposes sensitive data and creates exploitable points of failure.
 
-[SisterSafe]
+**Real-World Flaws:**
+- **Privacy vs Safety Trade-off:** Raw GPS required for help, but shared to third parties and vulnerable.
+- **Censorship & Trust Risks:** Centralized alerts can be blocked, delayed, or manipulated.
+- **Sybil/Identity Attacks:** Fake accounts can infiltrate “trusted” safety circles.
 
-The project's objectives are centered on establishing a new paradigm for digital safety built on verifiable autonomy.
+---
 
-- Maximize User PrivacyAchieve: zero disclosure of raw location data until the immutable ZK condition is met and verified on-chain. Aligned with the Cypherpunk principle.
-- Ensure Alert Integrity: Achieve 100% censorship resistance for the alert signal by using an L2 (Celo) to verify the ZK-Proof, ensuring the signal cannot be blocked by centralized entities. Key: Decentralization
-- Establish Trustless Network: Integrate Self Protocol to ensure the trusted contact list is cryptographically Sybil-resistant and composed of verified, unique individuals.Feminist / Public GoodsDemonstrate Cross-Chain. Key: Confidentiality
-- Successfully use Oasis Sapphire to execute the confidential logic, proving that ZK-verification on one chain (Celo/Aztec) can securely trigger a data release on another chain (Oasis).ETHGlobal / Technical Excellence
+## 🛡️ SisterSafe Solution
 
-SisterSafe is not just feel secure. It’s a right to be free without fear.
+SisterSafe removes trust assumptions with a triple-layered approach:
 
-[Human Solution]
+### 1. **Trustless Geo-Proof (zk-PoL)**
+- User generates a zk-proof (π) of being “outside safe zone” or having triggered a panic alert.
+- **No raw GPS is ever revealed** to anyone—even in emergencies.
 
-a. Social Impact
+### 2. **Confidential Key Release**
+- Decryption key (KS) for actual location is stored in an Oasis Confidential Smart Contract.
+- Key is released _only if_ the zk-proof (π) is valid, enforced by verified Celo L2 state.
 
-The primary social impact of SisterSafe is the dismantling of the historical compromise between privacy and safety. It provides a technology that is non-invasive, accessible, and designed for real-world crisis intervention.
+### 3. **Private, Sybil-resistant Social Graph**
+- Self Protocol and Aztec ensure trusted contacts are real, unique humans—without revealing personal ID or linking wallet addresses on-chain.
 
-** Empowerment and Autonomy: It shifts control of sensitive location data from centralized, for-profit corporations back to the individual. The user is the sole authority over when their location is disclosed and to whom.
+---
 
-** Safety Net Integrity: By leveraging Self Protocol, the system ensures the safety network is composed of verified, unique humans (anti-Sybil attack). This guarantees the integrity of the crucial network needed for crisis response.
+## 🎯 Project Objectives
 
-** Global Accessibility: Building on Celo L2 ensures that the system is cheap and mobile-first, making this life-saving technology economically viable for women in low-income or underbanked regions where data vulnerability is often highest.
+- **Maximize Privacy:** Zero disclosure of location data until ZK-verified.
+- **Censorship-Resistance:** Alert signal can't be blocked (L2 on-chain verification).
+- **Trustless Safety Net:** All contacts cryptographically verified (no fake accounts).
+- **Cross-chain Confidentiality:** ZK-verification on Celo/Aztec triggers key release on Oasis Sapphire.
 
-b. Technical Innovation
+---
 
-SisterSafe is a showcase of cutting-edge multi-protocol integration to solve a previously intractable privacy problem.
+## 🌍 Human & Technical Impact
 
-**Zero-Knowledge Proofs for Geo-Verification: The core innovation is using zk-PoL (Proof of Location) to prove the state of danger (e.g., "I am outside my safe zone") without ever revealing the precise GPS coordinates to the blockchain. This is the ultimate privacy safeguard.
-**Verifiable Confidential Compute: It establishes a trustless linkage between the ZK verification on Celo and the key release on Oasis Sapphire. The Oasis Confidential Smart Contract (CSM) ensures that the decryption key ($K_S$) is only released when the ZK-verified truth on Celo is confirmed, maintaining end-to-end data confidentiality.
-** Transaction Privacy: Integrating Aztec Network ensures that the life-saving panic transaction itself is private, obscuring the user's wallet address and the exact time the alert was initiated from public view. This protects the user from potential targeted harassment or surveillance based on their on-chain activity.
+### **Empowerment and Autonomy**
+- Shifts control of location data back to the individual.
 
-c. Cypherpunk and Feminist Philosophy
+### **Safety Net Integrity**
+- Guarantees trusted network with unique, verified contacts.
 
-The project is built entirely on the foundational principles of both movements: Privacy as Power and Autonomy as Safety.
+### **Global Accessibility**
+- Designed for low-cost, mobile-first use (Celo L2), targeting high-need, underbanked populations.
 
-** Cypherpunk:	"Code is Law" for Safety: The emergency logic is encoded immutably in the ZK circuit and Smart Contracts, replacing trust in institutions or centralized authorities with verifiable math. Privacy is non-negotiable and baked into the protocol via ZK and Oasis.
-** Feminist:	Autonomy over Surveillance: The user is the sovereign owner of their data and safety graph. The system refuses to treat the user's location as a product or a target for surveillance. The technology is wielded as a defensive shield, not a monitoring tool.
-** Synergy:	The project asserts that true safety for vulnerable groups is impossible without radical privacy. By combining ZK and confidential compute, zk-Alethea ensures the user maintains complete digital sovereignty even while seeking emergency assistance.
+### **Technical Highlights**
+- **zk-PoL for geo-verification** without revealing GPS
+- **Confidential compute** (Oasis) for safe, programmatic key management
+- **Private alerts** (Aztec) for on-chain privacy
 
-[Team]
+---
 
-* Dayana
-* Cristina
-* Sonia
-* Paula
-* Rocio
+## 🔗 Philosophical Foundations
+
+> _Privacy as Power. Autonomy as Safety._  
+> – Cypherpunk & Feminist Principles
+
+- **Code is Law:** All safety logic enforced by ZK circuits and smart contracts.
+- **Data Sovereignty:** Users own their graph, their data, and their choices.
+- **Synergistic Security:** Radical privacy is the only route to true safety for vulnerable users.
+
+---
+
+## 🧑‍💻 Team
+
+- Dayana
+- Cristina
+- Sonia
+- Paula
+- Rocio
+
+---
 
