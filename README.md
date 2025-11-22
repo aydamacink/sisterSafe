@@ -1,4 +1,4 @@
-# Proyect Name: SisterSafe
+# Project Name: SisterSafe
 
 [Core Ethos]: Feminist & Cypherpunk (Maximal Privacy + Self-Sovereignty)
 [Technology Stack] 	Zero-Knowledge Proofs (ZK-SNARKs), Celo L2, Self Protocol (ZK Identity), Oasis Sapphire (Confidential Compute)
