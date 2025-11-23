@@ -105,12 +105,25 @@ A modern Celo blockchain application built with Next.js, TypeScript, and Turbore
    pnpm install
    ```
 
-2. Start the development server:
+2. Configure environment variables:
+   
+   Create a `.env.local` file in `apps/web/` with:
+   ```bash
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
+   NEXT_PUBLIC_URL=http://localhost:3000
+   ```
+   
+   **Get your WalletConnect Project ID:**
+   - Go to [https://cloud.walletconnect.com/](https://cloud.walletconnect.com/)
+   - Sign in and create a new project
+   - Copy the Project ID and paste it in your `.env.local`
+
+3. Start the development server:
    ```bash
    pnpm dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
@@ -141,7 +154,9 @@ This is a monorepo managed by Turborepo with the following structure:
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
+- **Web3**: Wagmi v2 + RainbowKit (multi-wallet support)
 - **Smart Contracts**: Hardhat with Viem
+- **Blockchain**: Celo Sepolia Testnet
 - **Monorepo**: Turborepo
 - **Package Manager**: PNPM
 

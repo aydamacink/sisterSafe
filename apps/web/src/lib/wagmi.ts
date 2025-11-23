@@ -1,5 +1,7 @@
 // apps/web/src/lib/wagmi.ts
 
+import { http } from 'wagmi';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { createConfig, http } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
@@ -31,6 +33,15 @@ export const celoSepolia = {
     testnet: true,
 };
 
+// RainbowKit configuration with multiple wallets
+export const wagmiConfig = getDefaultConfig({
+    appName: 'SisterSafe',
+    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+    chains: [celoSepolia as any],
+    transports: {
+        [celoSepolia.id]: http(celoSepolia.rpcUrls.default.http[0]),
+    },
+    ssr: true, // Enable SSR for Next.js
 // Detect if we're in Farcaster environment
 const isInFarcaster = () => {
     if (typeof window === 'undefined') return false;

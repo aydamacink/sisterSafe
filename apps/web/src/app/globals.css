@@ -1,3 +1,5 @@
+@import '@rainbow-me/rainbowkit/styles.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,4 +76,40 @@
   .shadow-soft-hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
   }
+}
+
+/* Personalización de RainbowKit */
+/* Sobrescribir estilos para que coincidan con el tema de la app */
+[data-rk] {
+  /* Botón principal de conexión */
+  --rk-colors-accentColor: hsl(178, 72%, 38%) !important;
+  --rk-colors-accentColorForeground: hsl(0, 0%, 100%) !important;
+  
+  /* Hover del botón */
+  --rk-colors-connectButtonBackground: hsl(178, 72%, 38%) !important;
+  --rk-colors-connectButtonBackgroundHover: hsl(178, 72%, 45%) !important;
+  
+  /* Modal */
+  --rk-colors-modalBackground: hsl(0, 0%, 100%) !important;
+  --rk-colors-modalBorder: hsl(178, 20%, 85%) !important;
+  
+  /* Botones secundarios */
+  --rk-colors-actionButtonBorder: hsl(178, 20%, 85%) !important;
+  --rk-colors-actionButtonBorderMobile: hsl(178, 20%, 85%) !important;
+  
+  /* Bordes redondeados */
+  --rk-radii-connectButton: 9999px !important;
+  --rk-radii-modal: 1rem !important;
+  --rk-radii-menuButton: 1rem !important;
+}
+
+/* Estilos específicos para el botón Connect */
+button[data-rk] {
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+button[data-rk]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 166, 164, 0.3);
 }
