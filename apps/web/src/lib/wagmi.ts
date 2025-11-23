@@ -1,6 +1,7 @@
 // apps/web/src/lib/wagmi.ts
 
-import { createConfig, http } from 'wagmi';
+import { http } from 'wagmi';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 
 // Custom Celo-Sepolia chain (Cenpolia)
 export const celoSepolia = {
@@ -29,14 +30,13 @@ export const celoSepolia = {
     testnet: true,
 };
 
-//  Injected wallet 
-import { injected } from 'wagmi/connectors';
-
-// Wagmi config for Celo-Sepolia only
-export const wagmiConfig = createConfig({
-    chains: [celoSepolia],
+// RainbowKit configuration with multiple wallets
+export const wagmiConfig = getDefaultConfig({
+    appName: 'SisterSafe',
+    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+    chains: [celoSepolia as any],
     transports: {
         [celoSepolia.id]: http(celoSepolia.rpcUrls.default.http[0]),
     },
-    connectors: [injected()],
+    ssr: true, // Enable SSR for Next.js
 });
