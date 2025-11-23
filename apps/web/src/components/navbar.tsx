@@ -46,43 +46,9 @@ export function Navbar() {
     setIsMounted(true)
   }, [])
 
-  // Auto-connect when Farcaster wallet is available
-  useEffect(() => {
-    if (isMounted && !isConnected && !isPending) {
-      const autoConnect = async () => {
-        // Check if we're in Farcaster environment
-        const isInFarcaster = window.location !== window.parent.location || 
-                             window.navigator.userAgent.includes('Farcaster') ||
-                             document.referrer.includes('warpcast.com') ||
-                             document.referrer.includes('farcaster.xyz');
-        
-        if (isInFarcaster && connectors.length > 0) {
-          // Auto-connect with Farcaster wallet
-          try {
-            connect({ connector: connectors[0] });
-          } catch (error) {
-            console.error('Auto-connect failed:', error);
-          }
-        }
-      };
-      
-      autoConnect();
-    }
-  }, [isMounted, isConnected, isPending, connectors, connect])
-
-  const handleConnectWallet = () => {
-    if (connectors.length > 0) {
-      connect({ connector: connectors[0] })
-    }
-  }
-
-  const handleDisconnect = () => {
-    disconnect()
-  }
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <div className="container relative flex h-16 max-w-screen-2xl items-center justify-between px-4">
+      <div className="container relative flex h-24 max-w-screen-2xl items-center justify-between px-4 py-5">
         {/* Mobile menu button - left */}
         <div className="flex items-center">
           <Sheet>
@@ -93,12 +59,12 @@ export function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 bg-background">
-              <div className="flex items-center gap-3 mb-8">
+              <Link href="/" className="flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
                 <Logo />
                 <span className="font-bold text-lg text-foreground">
                   sisterSafe
                 </span>
-              </div>
+              </Link>
               <nav className="flex flex-col gap-4">
                 {navLinks.filter(link => link.name !== "Docs").map((link) => (
                   <Link
@@ -153,9 +119,12 @@ export function Navbar() {
         </div>
 
         {/* Logo - centered */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <Link 
+          href="/" 
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <Logo />
-        </div>
+        </Link>
 
         {/* Desktop: Connect wallet button - right */}
         <div className="hidden md:flex items-center gap-4">

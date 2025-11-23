@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google';
 import './globals.css';
 
 import { Navbar } from '@/components/navbar';
+import { FarcasterAutoConnect } from '@/components/FarcasterAutoConnect';
 import AppProviders from './providers'; // ✅ Client-side wagmi provider wrapper
 
 const poppins = Poppins({ 
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className={poppins.className}>
         {/* ✅ Wagmi + QueryClient wrapped in a Client Component */}
         <AppProviders>
+          <FarcasterAutoConnect />
           <div className="relative flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1">

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAccount, useConnect, useChainId, useSwitchChain, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import geohash from 'ngeohash';
 import { writeContract } from 'wagmi/actions';
-import { CheckCircle2, Loader2, Lock, Shield } from 'lucide-react';
+import { CheckCircle2, Loader2, Lock, Shield, ArrowUp } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -105,6 +105,8 @@ export default function HomePage() {
   const [verifying, setVerifying] = useState(false);
   const [sendingLocation, setSendingLocation] = useState(false);
   const [verifyTxHash, setVerifyTxHash] = useState<`0x${string}` | null>(null);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { address, isConnected } = useAccount();
   const { state, requestLocation } = useGeolocation();
@@ -169,6 +171,20 @@ export default function HomePage() {
       setVerifyTxHash(null);
     }
   }, [isVerifySuccess, refetchVerification]);
+
+  // Show scroll to top button when user scrolls down
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   if (!isMounted) {
     return null;
@@ -357,6 +373,10 @@ export default function HomePage() {
         });
         // Simulate processing time for UX
         await new Promise(resolve => setTimeout(resolve, 1500));
+        // Show success alert
+        setShowSuccessAlert(true);
+        // Hide alert after 3 seconds
+        setTimeout(() => setShowSuccessAlert(false), 3000);
       } catch (error) {
         console.error('Error sending location:', error);
       } finally {
@@ -365,9 +385,31 @@ export default function HomePage() {
     }
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
-    <main className="min-h-screen bg-background px-4 py-8 md:px-8 md:py-12">
-      <div className="container mx-auto max-w-2xl space-y-6">
+    <>
+      {/* Success Alert Popup */}
+      {showSuccessAlert && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5 duration-300">
+          <div className="bg-primary/10 border-2 border-primary rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <p className="text-sm font-medium text-primary">
+                Your friends have been successfully notified
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="min-h-screen bg-background px-4 py-8 md:px-8 md:py-12">
+        <div className="container mx-auto max-w-2xl space-y-6">
         {/* Header principal */}
         <header className="space-y-3 text-center md:text-left">
           <p className="text-base md:text-lg text-muted-foreground">
@@ -433,12 +475,24 @@ export default function HomePage() {
                   </Button>
                 ) : null}
                 <Button
-                  variant="pill"
+                  type="button"
+                  variant={state.status === 'success' && geohash5 ? 'pill' : 'outline'}
                   size="pill"
+                  disabled={state.status !== 'success' || !geohash5 || sendingLocation || !isVerified}
+                  onClick={handleSendLocation}
                   className="flex-1 sm:flex-none"
-                  disabled={!isVerified}
                 >
-                  Trusted circle
+                  {sendingLocation ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Alert my friends
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -518,27 +572,6 @@ export default function HomePage() {
             >
               Update location
             </Button>
-
-            <Button
-              type="button"
-              variant={state.status === 'success' && geohash5 ? 'pill' : 'outline'}
-              size="pill"
-              disabled={state.status !== 'success' || !geohash5 || sendingLocation || !isVerified}
-              onClick={handleSendLocation}
-              className="sm:flex-none"
-            >
-              {sendingLocation ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Alert my friends
-                </>
-              )}
-            </Button>
           </div>
 
           <div className="pt-2 border-t border-border">
@@ -562,5 +595,17 @@ export default function HomePage() {
         </section>
       </div>
     </main>
+
+    {/* Scroll to top button */}
+    {showScrollTop && (
+      <button
+        onClick={scrollToTop}
+        className="fixed bottom-8 right-8 z-50 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:bg-primary/90 transition-all duration-300 animate-in slide-in-from-bottom-5"
+        aria-label="Volver arriba"
+      >
+        <ArrowUp className="h-6 w-6" />
+      </button>
+    )}
+    </>
   );
 }

@@ -8,7 +8,7 @@ interface LogoProps {
   height?: number
 }
 
-export function Logo({ className, width = 120, height = 40 }: LogoProps) {
+export function Logo({ className, width = 100, height = 40 }: LogoProps) {
   return (
     <Image
       src="/SisterSafe_logo.svg"
