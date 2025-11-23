@@ -127,7 +127,9 @@ Integration with Public Safety: Opt-in, ZK-verified alerts to local emergency se
 - Paula
 - Rocio
 
-# sisterSafe
+--
+
+## SisterSafe - How to run the code
 
 A miniapp to share location safely
 
