@@ -47,6 +47,30 @@ export function Navbar() {
     setIsMounted(true)
   }, [])
 
+  // Auto-connect when Farcaster wallet is available
+  useEffect(() => {
+    if (isMounted && !isConnected && !isPending) {
+      const autoConnect = async () => {
+        // Check if we're in Farcaster environment
+        const isInFarcaster = window.location !== window.parent.location || 
+                             window.navigator.userAgent.includes('Farcaster') ||
+                             document.referrer.includes('warpcast.com') ||
+                             document.referrer.includes('farcaster.xyz');
+        
+        if (isInFarcaster && connectors.length > 0) {
+          // Auto-connect with Farcaster wallet
+          try {
+            connect({ connector: connectors[0] });
+          } catch (error) {
+            console.error('Auto-connect failed:', error);
+          }
+        }
+      };
+      
+      autoConnect();
+    }
+  }, [isMounted, isConnected, isPending, connectors, connect])
+
   const handleConnectWallet = () => {
     if (connectors.length > 0) {
       connect({ connector: connectors[0] })

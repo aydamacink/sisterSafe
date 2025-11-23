@@ -21,6 +21,15 @@ const getEthereum = () => {
   return null;
 };
 
+// Check if we're in Farcaster environment
+const isInFarcaster = () => {
+  if (typeof window === 'undefined') return false;
+  return window.location !== window.parent.location || 
+         window.navigator.userAgent.includes('Farcaster') ||
+         document.referrer.includes('warpcast.com') ||
+         document.referrer.includes('farcaster.xyz');
+};
+
 type Coords = {
   lat: number;
   lon: number;
@@ -126,6 +135,25 @@ export default function HomePage() {
     setIsMounted(true);
   }, []);
 
+  // Auto-connect when Farcaster wallet is available
+  useEffect(() => {
+    if (isMounted && !isConnected && !isPending) {
+      const autoConnect = async () => {
+        // Check if we're in Farcaster environment
+        if (isInFarcaster() && connectors.length > 0) {
+          // Auto-connect with Farcaster wallet
+          try {
+            connect({ connector: connectors[0] });
+          } catch (error) {
+            console.error('Auto-connect failed:', error);
+          }
+        }
+      };
+      
+      autoConnect();
+    }
+  }, [isMounted, isConnected, isPending, connectors, connect]);
+
   // Force switch to Celo when connected and not on Celo
   useEffect(() => {
     if (isConnected && chainId !== celoSepolia.id) {
@@ -153,9 +181,15 @@ export default function HomePage() {
 
   // Function to add Celo network to MetaMask if not already added
   const addCeloNetwork = async () => {
+    // Skip for Farcaster - it handles network configuration automatically
+    if (isInFarcaster()) {
+      console.log('Running in Farcaster, skipping network addition');
+      return;
+    }
+
     const ethereum = getEthereum();
     if (!ethereum) {
-      throw new Error('MetaMask is not installed');
+      throw new Error('Wallet is not available');
     }
 
     try {
@@ -186,7 +220,7 @@ export default function HomePage() {
         errorMessage.includes('existing network')
       ) {
         // Network already exists, no need to add - this is fine
-        console.log('Network already exists in MetaMask, skipping add');
+        console.log('Network already exists in wallet, skipping add');
         return;
       }
       // For any other error, re-throw it
@@ -196,9 +230,31 @@ export default function HomePage() {
 
   // Function to ensure we're on Celo and wait for switch to complete
   const ensureCeloNetwork = async (): Promise<boolean> => {
+    // For Farcaster, just check the current chain and try to switch if needed
+    if (isInFarcaster()) {
+      try {
+        // If already on correct chain, return true
+        if (chainId === celoSepolia.id) {
+          return true;
+        }
+
+        // Try to switch using wagmi
+        await switchChain({ chainId: celoSepolia.id });
+        
+        // Wait a bit for the switch to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return true;
+      } catch (error: any) {
+        console.error('Error switching network in Farcaster:', error);
+        alert('Please switch to Celo Sepolia network');
+        return false;
+      }
+    }
+
+    // For MetaMask and other injected wallets
     const ethereum = getEthereum();
     if (!ethereum) {
-      alert('MetaMask is not installed');
+      alert('Wallet is not available');
       return false;
     }
 

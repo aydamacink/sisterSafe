@@ -1,6 +1,8 @@
 // apps/web/src/lib/wagmi.ts
 
 import { createConfig, http } from 'wagmi';
+import { injected } from 'wagmi/connectors';
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 
 // Custom Celo-Sepolia chain (Cenpolia)
 export const celoSepolia = {
@@ -29,14 +31,37 @@ export const celoSepolia = {
     testnet: true,
 };
 
-//  Injected wallet 
-import { injected } from 'wagmi/connectors';
+// Detect if we're in Farcaster environment
+const isInFarcaster = () => {
+    if (typeof window === 'undefined') return false;
+    
+    // Check for Farcaster SDK
+    try {
+        // Check if running in Farcaster Frame context
+        return window.location !== window.parent.location || 
+               window.navigator.userAgent.includes('Farcaster') ||
+               document.referrer.includes('warpcast.com') ||
+               document.referrer.includes('farcaster.xyz');
+    } catch (e) {
+        return false;
+    }
+};
 
-// Wagmi config for Celo-Sepolia only
+// Get appropriate connectors based on environment
+const getConnectors = () => {
+    // Always include Farcaster connector first if in Farcaster environment
+    if (isInFarcaster()) {
+        return [farcasterMiniApp()];
+    }
+    // Otherwise use injected wallet (MetaMask, etc.)
+    return [injected()];
+};
+
+// Wagmi config with automatic connector detection
 export const wagmiConfig = createConfig({
     chains: [celoSepolia],
     transports: {
         [celoSepolia.id]: http(celoSepolia.rpcUrls.default.http[0]),
     },
-    connectors: [injected()],
+    connectors: getConnectors(),
 });

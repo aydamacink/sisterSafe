@@ -99,8 +99,35 @@ The Farcaster manifest requires a signed account association to verify domain ow
 - The signed domain must exactly match where your app is hosted, including subdomains
 - If using ngrok, make sure the ngrok URL matches the signed domain
 
+## Wallet Integration
+
+### Automatic Wallet Detection
+
+The app automatically detects whether it's running in a Farcaster environment and uses the appropriate wallet connector:
+
+- **In Farcaster:** Uses the Farcaster MiniApp wallet connector, which connects automatically without prompting MetaMask
+- **Outside Farcaster:** Uses the injected wallet connector (MetaMask, Coinbase Wallet, etc.)
+
+### How It Works
+
+1. **Environment Detection:** The app checks multiple signals to determine if it's running in Farcaster:
+   - Frame context (iframe detection)
+   - User agent string
+   - Document referrer (warpcast.com or farcaster.xyz)
+
+2. **Automatic Connection:** When in Farcaster, the wallet connects automatically on page load
+
+3. **Network Switching:** The app automatically switches to Celo Sepolia network when needed
+
+### Developer Notes
+
+- The wallet configuration is in `apps/web/src/lib/wagmi.ts`
+- Auto-connect logic is in `apps/web/src/app/providers.tsx`, `apps/web/src/app/page.tsx`, and `apps/web/src/components/navbar.tsx`
+- Farcaster SDK initialization happens in the providers layer
+
 ## Additional Resources
 
 - [Farcaster Mini Apps Documentation](https://miniapps.farcaster.xyz/)
 - [Manifest Specification](https://miniapps.farcaster.xyz/specification/manifest)
 - [Account Association Guide](https://farcaster.xyz/~/developers/mini-apps/manifest)
+- [Farcaster Wagmi Connector](https://github.com/farcasterxyz/miniapp-wagmi-connector)
