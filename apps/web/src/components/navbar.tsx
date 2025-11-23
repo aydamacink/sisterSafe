@@ -46,6 +46,40 @@ export function Navbar() {
     setIsMounted(true)
   }, [])
 
+  // Auto-connect when Farcaster wallet is available
+  useEffect(() => {
+    if (isMounted && !isConnected && !isPending) {
+      const autoConnect = async () => {
+        // Check if we're in Farcaster environment
+        const isInFarcaster = window.location !== window.parent.location || 
+                             window.navigator.userAgent.includes('Farcaster') ||
+                             document.referrer.includes('warpcast.com') ||
+                             document.referrer.includes('farcaster.xyz');
+        
+        if (isInFarcaster && connectors.length > 0) {
+          // Auto-connect with Farcaster wallet
+          try {
+            connect({ connector: connectors[0] });
+          } catch (error) {
+            console.error('Auto-connect failed:', error);
+          }
+        }
+      };
+      
+      autoConnect();
+    }
+  }, [isMounted, isConnected, isPending, connectors, connect])
+
+  const handleConnectWallet = () => {
+    if (connectors.length > 0) {
+      connect({ connector: connectors[0] })
+    }
+  }
+
+  const handleDisconnect = () => {
+    disconnect()
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
       <div className="container relative flex h-16 max-w-screen-2xl items-center justify-between px-4">
