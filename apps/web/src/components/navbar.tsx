@@ -15,7 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { SISTER_SAFE_CONTRACT_ADDRESS, SISTER_SAFE_ABI } from "@/contracts/sisterSafeConfig"
-import { celoSepolia } from "@/lib/wagmi"
+import { celo } from "@/lib/wagmi"
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -90,7 +90,7 @@ export function Navbar() {
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-green-600">●</span>
                         <span className="text-muted-foreground font-medium">
-                          {Number(chainId) === celoSepolia.id ? 'Celo' : `Chain ${chainId}`}
+                          {Number(chainId) === celo.id ? 'Celo' : `Chain ${chainId}`}
                         </span>
                       </div>
 
@@ -134,7 +134,7 @@ export function Navbar() {
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-green-600">●</span>
                 <span className="text-muted-foreground font-medium">
-                  {Number(chainId) === celoSepolia.id ? 'Celo' : `Chain ${chainId}`}
+                  {Number(chainId) === celo.id ? 'Celo' : `Chain ${chainId}`}
                 </span>
               </div>
 

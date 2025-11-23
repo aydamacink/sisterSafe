@@ -11,7 +11,7 @@ import {
   SISTER_SAFE_CONTRACT_ADDRESS,
   SISTER_SAFE_ABI,
 } from '../contracts/sisterSafeConfig';
-import { wagmiConfig, celoSepolia } from '../lib/wagmi';
+import { wagmiConfig, celo } from '../lib/wagmi';
 
 // Type assertion for MetaMask
 const getEthereum = () => {
@@ -158,8 +158,8 @@ export default function HomePage() {
 
   // Force switch to Celo when connected and not on Celo
   useEffect(() => {
-    if (isConnected && chainId !== celoSepolia.id) {
-      switchChain({ chainId: celoSepolia.id });
+    if (isConnected && chainId !== celo.id) {
+      switchChain({ chainId: celo.id });
     }
   }, [isConnected, chainId, switchChain]);
 
@@ -212,15 +212,15 @@ export default function HomePage() {
       await ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: `0x${celoSepolia.id.toString(16)}`,
-          chainName: celoSepolia.name,
+          chainId: `0x${celo.id.toString(16)}`,
+          chainName: celo.name,
           nativeCurrency: {
-            name: celoSepolia.nativeCurrency.name,
-            symbol: celoSepolia.nativeCurrency.symbol,
-            decimals: celoSepolia.nativeCurrency.decimals,
+            name: celo.nativeCurrency.name,
+            symbol: celo.nativeCurrency.symbol,
+            decimals: celo.nativeCurrency.decimals,
           },
-          rpcUrls: celoSepolia.rpcUrls.default.http,
-          blockExplorerUrls: [celoSepolia.blockExplorers.default.url],
+          rpcUrls: celo.rpcUrls.default.http,
+          blockExplorerUrls: [celo.blockExplorers.default.url],
         }],
       });
     } catch (addError: any) {
@@ -250,12 +250,12 @@ export default function HomePage() {
     if (isInFarcaster()) {
       try {
         // If already on correct chain, return true
-        if (chainId === celoSepolia.id) {
+        if (chainId === celo.id) {
           return true;
         }
 
         // Try to switch using wagmi
-        await switchChain({ chainId: celoSepolia.id });
+        await switchChain({ chainId: celo.id });
         
         // Wait a bit for the switch to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -279,13 +279,13 @@ export default function HomePage() {
       const currentChainId = await ethereum.request({ method: 'eth_chainId' });
       const currentChainIdNumber = parseInt(currentChainId as string, 16);
 
-      if (currentChainIdNumber === celoSepolia.id) {
+      if (currentChainIdNumber === celo.id) {
         return true; // Already on Celo
       }
 
       // Try to switch first (network might already exist)
       try {
-        await switchChain({ chainId: celoSepolia.id });
+        await switchChain({ chainId: celo.id });
       } catch (switchError: any) {
         // If switch fails with "network not found", try adding it
         const switchErrorCode = switchError?.code || switchError?.data?.code;
@@ -294,7 +294,7 @@ export default function HomePage() {
           try {
             await addCeloNetwork();
             // Try switching again after adding (or if it already existed)
-            await switchChain({ chainId: celoSepolia.id });
+            await switchChain({ chainId: celo.id });
           } catch (addError: any) {
             // If add fails because network exists, just try switching again
             const addErrorCode = addError?.code || addError?.data?.code;
@@ -305,7 +305,7 @@ export default function HomePage() {
               addErrorMessage.includes('existing network')
             ) {
               // Network exists, just switch
-              await switchChain({ chainId: celoSepolia.id });
+              await switchChain({ chainId: celo.id });
             } else {
               throw addError;
             }
@@ -323,7 +323,7 @@ export default function HomePage() {
         const newChainId = await ethereum.request({ method: 'eth_chainId' });
         const newChainIdNumber = parseInt(newChainId as string, 16);
 
-        if (newChainIdNumber === celoSepolia.id) {
+        if (newChainIdNumber === celo.id) {
           return true; // Successfully switched
         }
         attempts++;
@@ -436,7 +436,7 @@ export default function HomePage() {
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="inline-flex items-center">
-                  Network: {Number(chainId) === celoSepolia.id ? (
+                  Network: {Number(chainId) === celo.id ? (
                     <>
                       <span className="text-green-600 mr-1">●</span>
                       Celo Sepolia

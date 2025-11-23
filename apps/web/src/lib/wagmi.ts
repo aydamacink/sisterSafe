@@ -5,7 +5,7 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 
 // Custom Celo-Sepolia chain (Cenpolia)
-export const celoSepolia = {
+export const celo = {
     id: 11142220, // Celo Sepolia Testnet chain ID (0xaa044c)
     name: 'Celo Sepolia',
     network: 'celo-sepolia',
@@ -50,9 +50,9 @@ export const isInFarcaster = () => {
 export const wagmiConfig = getDefaultConfig({
     appName: 'SisterSafe',
     projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
-    chains: [celoSepolia as any],
+    chains: [celo as any],
     transports: {
-        [celoSepolia.id]: http(celoSepolia.rpcUrls.default.http[0]),
+        [celo.id]: http(celo.rpcUrls.default.http[0]),
     },
     ssr: true,
 });

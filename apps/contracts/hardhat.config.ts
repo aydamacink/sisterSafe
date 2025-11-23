@@ -11,8 +11,8 @@ dotenv.config();
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
-    celocenpolia: {
-      url: "https://rpc.ankr.com/celo_sepolia",
+    celo: {
+      url: "https://forno.celo.org",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
