@@ -24,10 +24,10 @@ const getEthereum = () => {
 // Check if we're in Farcaster environment
 const isInFarcaster = () => {
   if (typeof window === 'undefined') return false;
-  return window.location !== window.parent.location || 
-         window.navigator.userAgent.includes('Farcaster') ||
-         document.referrer.includes('warpcast.com') ||
-         document.referrer.includes('farcaster.xyz');
+  return window.location !== window.parent.location ||
+    window.navigator.userAgent.includes('Farcaster') ||
+    document.referrer.includes('warpcast.com') ||
+    document.referrer.includes('farcaster.xyz');
 };
 
 type Coords = {
@@ -116,7 +116,7 @@ export default function HomePage() {
 
   // Read verification status
   const { data: isVerifiedData, refetch: refetchVerification } = useReadContract({
-    address: SISTER_SAFE_CONTRACT_ADDRESS,
+    address: SISTER_SAFE_CONTRACT_ADDRESS as `0x${string}`,
     abi: SISTER_SAFE_ABI,
     functionName: 'isVerified',
     args: address ? [address] : undefined,
@@ -151,7 +151,7 @@ export default function HomePage() {
           }
         }
       };
-      
+
       autoConnect();
     }
   }, [isMounted, isConnected, isPending, connectors, connect]);
@@ -256,7 +256,7 @@ export default function HomePage() {
 
         // Try to switch using wagmi
         await switchChain({ chainId: celo.id });
-        
+
         // Wait a bit for the switch to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
         return true;
@@ -410,202 +410,202 @@ export default function HomePage() {
 
       <main className="min-h-screen bg-background px-4 py-8 md:px-8 md:py-12">
         <div className="container mx-auto max-w-2xl space-y-6">
-        {/* Header principal */}
-        <header className="space-y-3 text-center md:text-left">
-          <p className="text-base md:text-lg text-muted-foreground">
-            Share your location and status with your friends safely and privately.
-          </p>
-        </header>
+          {/* Header principal */}
+          <header className="space-y-3 text-center md:text-left">
+            <p className="text-base md:text-lg text-muted-foreground">
+              Share your location and status with your friends safely and privately.
+            </p>
+          </header>
 
-        {/* Section: Wallet / Connection */}
-        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            My Account
-          </h2>
+          {/* Section: Wallet / Connection */}
+          <section className="bg-card border border-border rounded-2xl p-6 shadow-soft space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">
+              My Account
+            </h2>
 
-          {isConnected ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Connected address:
-                </p>
-                <p className="text-sm font-mono text-foreground break-all bg-secondary/50 rounded-lg p-3">
-                  {address}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="inline-flex items-center">
-                  Network: {Number(chainId) === celo.id ? (
-                    <>
-                      <span className="text-green-600 mr-1">●</span>
-                      Celo Sepolia
-                    </>
-                  ) : (
-                    `Chain ${chainId} (switching to Celo...)`
-                  )}
-                </span>
-              </div>
-
-              {/* Verification Status */}
-              {isVerified && (
-                <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 rounded-lg p-3">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span className="font-medium">Account verified</span>
+            {isConnected ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Connected address:
+                  </p>
+                  <p className="text-sm font-mono text-foreground break-all bg-secondary/50 rounded-lg p-3">
+                    {address}
+                  </p>
                 </div>
-              )}
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {!isVerified ? (
-                  <Button
-                    variant="pill"
-                    size="pill"
-                    onClick={handleVerify}
-                    disabled={verifying || isVerifyingTx}
-                    className="flex-1 sm:flex-none"
-                  >
-                    {verifying || isVerifyingTx ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center">
+                    Network: {Number(chainId) === celo.id ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Verifying...
+                        <span className="text-green-600 mr-1">●</span>
+                        Celo Sepolia
                       </>
                     ) : (
-                      'Verify my account'
+                      `Chain ${chainId} (switching to Celo...)`
+                    )}
+                  </span>
+                </div>
+
+                {/* Verification Status */}
+                {isVerified && (
+                  <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 rounded-lg p-3">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="font-medium">Account verified</span>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  {!isVerified ? (
+                    <Button
+                      variant="pill"
+                      size="pill"
+                      onClick={handleVerify}
+                      disabled={verifying || isVerifyingTx}
+                      className="flex-1 sm:flex-none"
+                    >
+                      {verifying || isVerifyingTx ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify my account'
+                      )}
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant={state.status === 'success' && geohash5 ? 'pill' : 'outline'}
+                    size="pill"
+                    disabled={state.status !== 'success' || !geohash5 || sendingLocation || !isVerified}
+                    onClick={handleSendLocation}
+                    className="flex-1 sm:flex-none"
+                  >
+                    {sendingLocation ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Alert my friends
+                      </>
                     )}
                   </Button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant={state.status === 'success' && geohash5 ? 'pill' : 'outline'}
-                  size="pill"
-                  disabled={state.status !== 'success' || !geohash5 || sendingLocation || !isVerified}
-                  onClick={handleSendLocation}
-                  className="flex-1 sm:flex-none"
-                >
-                  {sendingLocation ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Alert my friends
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Connect your wallet to start using sisterSafe.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* Section: Location / Meeting Point */}
-        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            Share Location
-          </h2>
-
-          {state.status === 'idle' && (
-            <p className="text-sm text-muted-foreground">
-              Tap "Update location" to share your meeting point with your friends.
-            </p>
-          )}
-
-          {state.status === 'loading' && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="animate-pulse">●</span>
-              Getting your location…
-            </div>
-          )}
-
-          {state.status === 'error' && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-              <p className="text-sm text-destructive whitespace-pre-wrap">
-                Error: {state.message}
-              </p>
-            </div>
-          )}
-
-          {state.status === 'success' && (
-            <div className="space-y-3 bg-secondary/30 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">
-                  Current location:
-                </p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Lock className="h-3 w-3" />
-                  <span>Encrypted</span>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground space-y-1 font-mono">
-                <p>
-                  <span className="font-semibold text-foreground">Lat:</span>{' '}
-                  {state.coords.lat.toFixed(5)}
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Connect your wallet to start using sisterSafe.
                 </p>
-                <p>
-                  <span className="font-semibold text-foreground">Lon:</span>{' '}
-                  {state.coords.lon.toFixed(5)}
+              </div>
+            )}
+          </section>
+
+          {/* Section: Location / Meeting Point */}
+          <section className="bg-card border border-border rounded-2xl p-6 shadow-soft space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">
+              Share Location
+            </h2>
+
+            {state.status === 'idle' && (
+              <p className="text-sm text-muted-foreground">
+                Tap &apos;Update location&apos; to share your meeting point with your friends.
+              </p>
+            )}
+
+            {state.status === 'loading' && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="animate-pulse">●</span>
+                Getting your location…
+              </div>
+            )}
+
+            {state.status === 'error' && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                <p className="text-sm text-destructive whitespace-pre-wrap">
+                  Error: {state.message}
                 </p>
-                {geohash5 && (
-                  <p>
-                    <span className="font-semibold text-foreground">Geohash:</span>{' '}
-                    {geohash5}
+              </div>
+            )}
+
+            {state.status === 'success' && (
+              <div className="space-y-3 bg-secondary/30 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">
+                    Current location:
                   </p>
-                )}
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Lock className="h-3 w-3" />
+                    <span>Encrypted</span>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground space-y-1 font-mono">
+                  <p>
+                    <span className="font-semibold text-foreground">Lat:</span>{' '}
+                    {state.coords.lat.toFixed(5)}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-foreground">Lon:</span>{' '}
+                    {state.coords.lon.toFixed(5)}
+                  </p>
+                  {geohash5 && (
+                    <p>
+                      <span className="font-semibold text-foreground">Geohash:</span>{' '}
+                      {geohash5}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button
+                type="button"
+                variant="pill"
+                size="pill"
+                onClick={requestLocation}
+                className="flex-1"
+              >
+                Update location
+              </Button>
+            </div>
+
+            <div className="pt-2 border-t border-border">
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Lock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                <p>
+                  Your location is encrypted and converted to an approximate geohash before being sent to Oasis Sapphire for private computation, protecting your exact privacy.
+                </p>
               </div>
             </div>
-          )}
+          </section>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button
-              type="button"
-              variant="pill"
-              size="pill"
-              onClick={requestLocation}
-              className="flex-1"
-            >
-              Update location
-            </Button>
-          </div>
+          {/* Additional section: Security Resources (placeholder for future) */}
+          <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+            <h2 className="text-xl font-semibold text-foreground mb-3">
+              Security Resources
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Coming soon: quick access to emergency contacts and help resources.
+            </p>
+          </section>
+        </div>
+      </main>
 
-          <div className="pt-2 border-t border-border">
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-              <Lock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-              <p>
-                Your location is encrypted and converted to an approximate geohash before being sent to Oasis Sapphire for private computation, protecting your exact privacy.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Additional section: Security Resources (placeholder for future) */}
-        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
-          <h2 className="text-xl font-semibold text-foreground mb-3">
-            Security Resources
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Coming soon: quick access to emergency contacts and help resources.
-          </p>
-        </section>
-      </div>
-    </main>
-
-    {/* Scroll to top button */}
-    {showScrollTop && (
-      <button
-        onClick={scrollToTop}
-        className="fixed bottom-8 right-8 z-50 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:bg-primary/90 transition-all duration-300 animate-in slide-in-from-bottom-5"
-        aria-label="Volver arriba"
-      >
-        <ArrowUp className="h-6 w-6" />
-      </button>
-    )}
+      {/* Scroll to top button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:bg-primary/90 transition-all duration-300 animate-in slide-in-from-bottom-5"
+          aria-label="Volver arriba"
+        >
+          <ArrowUp className="h-6 w-6" />
+        </button>
+      )}
     </>
   );
 }
